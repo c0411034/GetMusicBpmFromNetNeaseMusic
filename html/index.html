@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <input type="file" name="" id="fileInput" multiple="multiple">
+    <table id="musicTable" class="table table-hover">
+        <tr>
+            <th>序号</th>
+            <th>名称</th>
+            <th>bpm</th>
+            <th>播放</th>
+        </tr>
+
+
+    </table>
+    <a class="btn btn-normal" onclick="oderTableIndexBpm()">排序</a>
+
+    <script src="https://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="./js/music-tempo.min.js"></script>
+    <script>
+        var context = new AudioContext();
+        var fileInput = document.getElementById("fileInput");
+        var currentCountFileIndex = 0; //当前计算的音乐文件的位置
+        var musicFiles;
+        fileInput.onchange = function() {
+            var files = fileInput.files;
+
+            if (files.length == 0) return;
+            musicFiles = files;
+            displayFIleName(files);
+            caculateBPM();
+        }
+        var calcTempo = function(buffer) {
+            var audioData = [];
+            // Take the average of the two channels
+            if (buffer.numberOfChannels == 2) {
+                var channel1Data = buffer.getChannelData(0);
+                var channel2Data = buffer.getChannelData(1);
+                var length = channel1Data.length;
+                for (var i = 0; i < length; i++) {
+                    audioData[i] = (channel1Data[i] + channel2Data[i]) / 2;
+                }
+            } else {
+                audioData = buffer.getChannelData(0);
+            }
+
+            var mt = new MusicTempo(audioData);
+            appendBPMInTable(mt.tempo);
+            console.log(mt);
+        }
+
+        function displayFIleName(files) {
+            for (var i = 0; i < files.length; i++) {
+                var objUrl = getObjectURL(files[i]);
+                $("#musicTable").append("<tr class='valueTr'><td>" + (i + 1) + "</td><td>" + (files[i].name) + "</td><td class='bpmTd' ><img src='./img/wait.gif'></td><td><audio src='" + objUrl + "'controls='' ></audio></td></tr>");
+            }
+        }
+
+        function caculateBPM() {
+            if (musicFiles.length < currentCountFileIndex + 1) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(fileEvent) {
+                var contextResult = context.decodeAudioData(fileEvent.target.result, calcTempo);
+            }
+
+            reader.readAsArrayBuffer(musicFiles[currentCountFileIndex++]);
+
+        }
+        //将BPM的值追加到表格中
+        function appendBPMInTable(bpmValue) {
+            var tmp = $(".bpmTd img").first().parent();
+            tmp.text(Math.round(bpmValue));
+            console.log("modify");
+            caculateBPM();
+        }
+
+        <!--把文件转换成可读URL-->
+        function getObjectURL(file) {
+            var url = null;
+            if (window.createObjectURL != undefined) { // basic
+                url = window.createObjectURL(file);
+            } else if (window.URL != undefined) { // mozilla(firefox)
+                url = window.URL.createObjectURL(file);
+            } else if (window.webkitURL != undefined) { // webkit or chrome
+                url = window.webkitURL.createObjectURL(file);
+            }
+            return url;
+        }
+        //表排序
+        function oderTableIndexBpm() {
+            trList = $(".valueTr");
+            for (var i = 0; i < trList.length - 1; i++) {
+                for (var j = 0; j < trList.length - i - 1; j++) {
+                    if (compareTrBpm(trList.eq(j), trList.eq(j + 1))) {
+                        var swap = trList[j];
+                        trList[j] = trList[j + 1];
+                        trList[j + 1] = swap;
+                    }
+                }
+            }
+            updateTable(trList)
+        }
+        //用于测试
+        function diplayTrList(trList) {
+            trList.each(function() {
+                console.log($(this).html());
+            })
+        }
+        //用新的tr填充进音乐表中
+        function updateTable(trList) {
+            $(".valueTr").remove();
+            trList.each(function() {
+                $("#musicTable").append($(this));
+            })
+        }
+        //比较两行的bpm大小,如果A>B返回true否则返回false
+        function compareTrBpm(trA, trB) {
+            console.log(trA)
+            var valueA = trA.find(".bpmTd").text();
+            var valueB = trB.find(".bpmTd").text();
+            return valueA > valueB ? true : false;
+        }
+    </script>
+</body>
+</html>
