@@ -3,7 +3,7 @@ var MusicTempo = require("music-tempo");
 var fs = require("fs");
 var join = require('path').join;
 
-var MusicPath="Musics\\";
+var MusicPath="Musics/";
 var bpmRange={"超快":[190,280],
               "快跑":[160,190],
               "慢跑":[140,160],

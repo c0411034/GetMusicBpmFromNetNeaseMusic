@@ -277,20 +277,11 @@ class Netease():
 
 
 if __name__ == '__main__':
+    playlistID=  441143083
     timeout = 60
     output = 'Musics'
     quiet = True
     cookie_path = 'Cookie'
     netease = Netease(timeout, output, quiet, cookie_path)
-    # netease.download_song_by_toplist_hot(100)
-    netease.download_song_by_playlist(441143083)
-    #netease.download_song_by_search(song_name, song_num + 1)
-    # music_list_name = 'music_list.txt'
-    # # 如果music列表存在, 那么开始下载
-    # if os.path.exists(music_list_name):
-    #     with open(music_list_name, 'r') as f:
-    #         music_list = list(map(lambda x: x.strip(), f.readlines()))
-    #     for song_num, song_name in enumerate(music_list):
-    #         netease.download_song_by_search(song_name, song_num + 1)
-    # else:
-    #     click.echo('music_list.txt not exist.')
+ 
+    netease.download_song_by_playlist(playlistID)
